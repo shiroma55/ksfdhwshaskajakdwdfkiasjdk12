@@ -430,6 +430,8 @@ button.primary {
         document.getElementById("loadStatus").textContent =
           `成人者を ${participants.length} 名 読み込みました。`;
         updateProgressPanel();
+
+        localStorage.setItem("participants", JSON.stringify(participants));
       };
 
       document.getElementById("loadSection").style.display = "none";
@@ -570,53 +572,8 @@ button.primary {
       });
     }
 
-    // ===== 名前検索（予測変換） =====
-    function filterParticipantsByNameQuery(query) {
-      const q = toHiragana(query.trim());
-      if (!q) return [];
-   
-      return participants.filter(p => {
-        const name = toHiragana(p.名前 || "");
-        const kana = toHiragana(p.ふりがな || "");
-        return name.startsWith(q) || kana.startsWith(q);
-      }).slice(0, 30); // 最大30件
-    }
 
-  function renderNameSuggestions(list) {
-  const container = document.getElementById("nameSuggestions");
-  container.innerHTML = "";
-  if (!list.length) return;
-
-  list.forEach(p => {
-    const item = document.createElement("div");
-    item.className = "suggest-item";
-    item.textContent = `${p.名前}（${p.ふりがな} / ${p.中学} / 番号:${p.番号}）`;
-
-    item.addEventListener("click", () => {
-      showParticipantDetailsByName(p);   // ← 正しい関数名
-      document.getElementById("nameSuggestions").innerHTML = "";
-      document.getElementById("nameSearchInput").blur();   // ← これで候補が再表示されない
-    });
-
-    container.appendChild(item);
-  });
-}
-
-    function showParticipantDetailsByName(p) {
-      const div = document.getElementById("selectedParticipantByName");
-      div.style.display = "block";
-      div.innerHTML = `
-        <div><span class="tag">番号</span>${p.番号}</div>
-        <div><span class="tag">名前</span>${p.名前}（${p.ふりがな}）</div>
-        <div><span class="tag">中学</span>${p.中学}</div>
-        <div><span class="tag">髪飾り</span>${p.髪飾り || "－"}</div>
-        <div><span class="tag">メイク</span>${p.メイク || "（未）"}</div>
-        <div><span class="tag">ヘアー</span>${p.ヘアー || "（未）"}</div>
-        <div><span class="tag">着付け</span>${p.着付け || "（未）"}</div>
-        <div><span class="tag">オリジナル番号</span>${p.オリジナル番号 || "－"}</div>
-        <div><span class="tag">入店時間</span>${p.入店時間 || "（未）"}</div>
-        <div><span class="tag">備考</span>${p.備考 || "－"}</div>
-      `;
+    
       // 入店時間ボタン用に、対象番号を保存
       document.getElementById("setArrivalTime").dataset.targetNumber = p.番号;
     }
