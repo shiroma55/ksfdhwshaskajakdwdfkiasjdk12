@@ -248,14 +248,14 @@ button.primary {
   <h1>成人式 進行管理アプリ</h1>
   <div class="small">（Participants.csv ＋ staff_list.csv を読み込んで使います）</div>
 
-  <!-- データ読込 -->
-  <div class="section">
-    <h2>1. データ読込</h2>
-    <div class="field">
-      <label>成人者CSV：</label>
-      <input type="file" id="participantsFile" accept=".csv">
-      <span class="small">※ Excel から「CSV UTF-8」で保存したファイル</span>
-    </div>
+ <!-- データ読込 -->
+<div class="section" id="loadSection">
+  <h2>1. データ読込</h2>
+  <div class="field">
+    <label>成人者CSV：</label>
+    <input type="file" id="participantsFile" accept=".csv">
+    <span class="small">※ Excel から「CSV UTF-8」で保存したファイル</span>
+  </div>
     <div class="field">
       <label>スタッフCSV：</label>
       <input type="file" id="staffFile" accept=".csv">
