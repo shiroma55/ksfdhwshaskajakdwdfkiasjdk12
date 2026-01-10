@@ -768,7 +768,55 @@ button.primary {
     });
 
     document.getElementById("addNewStaff").addEventListener("click", addNewStaff);
+    
+   // ===== 名前検索（予測候補） =====
+const nameInput = document.getElementById("nameSearchInput");
+const nameSuggestions = document.getElementById("nameSuggestions");
 
+nameInput.addEventListener("input", function () {
+  const keyword = this.value.trim();
+  nameSuggestions.innerHTML = "";
+
+  if (keyword === "") return;
+
+  // ひらがな判定（ひらがなだけなら true）
+  const isKana = /^[\u3040-\u309F]+$/.test(keyword);
+
+  const list = participants.filter(p => {
+    if (isKana) {
+      // ひらがな → ふりがなで前方一致
+      return p.ふりがな && p.ふりがな.startsWith(keyword);
+    } else {
+      // 漢字 → 名前で前方一致
+      return p.名前 && p.名前.startsWith(keyword);
+    }
+  });
+
+  list.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "suggestion-item";
+    div.textContent = p.名前; // 表示は名前だけ
+
+    div.addEventListener("click", () => {
+      // 名前側カード表示
+      showParticipantDetailsByName(p);
+
+      // 入店時間ボタンに番号をセット
+      document.getElementById("setArrivalTime").dataset.targetNumber = p.番号;
+
+      // 番号側カードも同期
+      currentParticipantIndexByNumber = participants.indexOf(p);
+      showParticipantDetailsByNumber(p);
+
+      // 候補を消す
+      nameSuggestions.innerHTML = "";
+      nameInput.value = p.名前;
+    });
+
+    nameSuggestions.appendChild(div);
+  });
+
+}); // ←★ これが必要！
   </script>
 </body>
 
