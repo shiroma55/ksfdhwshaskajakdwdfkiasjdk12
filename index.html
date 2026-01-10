@@ -431,9 +431,10 @@ button.primary {
           `成人者を ${participants.length} 名 読み込みました。`;
         updateProgressPanel();
       };
-      reader.readAsText(file, "UTF-8");
-    }
 
+      document.getElementById("loadSection").style.display = "none";
+      reader.readAsText(file, "UTF-8");
+    }   
     function handleStaffCSV(file) {
       const reader = new FileReader();
       reader.onload = e => {
