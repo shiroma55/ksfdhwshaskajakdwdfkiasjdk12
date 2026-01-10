@@ -657,6 +657,8 @@ button.primary {
       if (currentParticipantIndexByNumber === idx) {
         showParticipantDetailsByNumber(participants[idx]);
       }
+
+      localStorage.setItem("participants", JSON.stringify(participants));
     }
 
     // ===== 進行状況パネル =====
