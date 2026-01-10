@@ -464,7 +464,9 @@ button.primary {
           ` / スタッフ（着付け:${staffByRole.kitsuke.length} / メイク:${staffByRole.make.length} / ヘアー:${staffByRole.hair.length}）読み込みました。`;
 
         renderStaffButtons();
-      };
+        
+      localStorage.setItem("staffByRole", JSON.stringify(staffByRole));
+        
       reader.readAsText(file, "UTF-8");
     }
 
