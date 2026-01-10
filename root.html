@@ -1,0 +1,767 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>成人式 進行管理アプリ（Itsukoさん専用）</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 16px;
+      background: #f7f7fb;
+      line-height: 1.6;
+    }
+    h1, h2, h3 {
+      margin-top: 0.4em;
+      margin-bottom: 0.4em;
+    }
+    .section {
+      background: #fff;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    label {
+      font-weight: 600;
+      margin-right: 6px;
+    }
+    input[type="text"], input[type="number"], select, textarea {
+      padding: 4px 6px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    button {
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid #777;
+      background: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      margin: 2px;
+    }
+    button.primary {
+      background: #2563eb;
+      color: #fff;
+      border-color: #1d4ed8;
+    }
+    button[disabled] {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .field {
+      margin-bottom: 6px;
+    }
+    .small {
+      font-size: 12px;
+      color: #555;
+    }
+    .tag {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      font-size: 11px;
+      margin-right: 4px;
+    }
+    .status-complete {
+      color: #16a34a;
+      font-weight: 600;
+    }
+    .status-pending {
+      color: #b91c1c;
+      font-weight: 600;
+    }
+    .chip {
+      border-radius: 999px;
+      border: 1px solid #cbd5f5;
+      padding: 2px 10px;
+      margin: 2px;
+      font-size: 12px;
+    }
+    .chip.selected {
+      background: #2563eb;
+      color: #fff;
+      border-color: #1d4ed8;
+    }
+    .suggestions {
+      margin-top: 4px;
+      border-radius: 4px;
+      border: 1px solid #e5e7eb;
+      max-height: 160px;
+      overflow-y: auto;
+      background: #fff;
+    }
+    .suggest-item {
+      padding: 4px 6px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .suggest-item:hover {
+      background: #eff6ff;
+    }
+    .participant-card {
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+      padding: 8px 10px;
+      background: #fafafa;
+      margin-top: 6px;
+      font-size: 13px;
+    }
+    .role-section {
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+    .progress-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px;
+      font-size: 13px;
+    }
+    .progress-card {
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+      padding: 6px 8px;
+      background: #f9fafb;
+    }
+    .badge {
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: #e5e7eb;
+      margin-left: 4px;
+    }
+    /* ==== ダークモード（Itsukoさん専用） ==== */
+body {
+  background: #1e1e1e;
+  color: #f0f0f0;
+  font-size: 18px; /* 文字も少し大きく */
+}
+
+.section {
+  background: #2a2a2a;
+  box-shadow: none;
+  border: 1px solid #444;
+}
+
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  background: #333;
+  color: #fff;
+  border: 1px solid #555;
+}
+
+button {
+  background: #444;
+  color: #fff;
+  border: 1px solid #666;
+}
+
+button.primary {
+  background: #2563eb;
+  border-color: #1d4ed8;
+}
+
+.suggestions {
+  background: #333;
+  border-color: #555;
+}
+
+.suggest-item:hover {
+  background: #3a3a3a;
+}
+
+.participant-card,
+.progress-card {
+  background: #2f2f2f;
+  border-color: #555;
+}
+
+.tag {
+  background: #444;
+}
+
+.status-complete {
+  color: #4ade80;
+}
+
+.status-pending {
+  color: #f87171;
+}
+</style>
+</head>
+<body>
+
+  <h1>成人式 進行管理アプリ</h1>
+  <div class="small">（Participants.csv ＋ staff_list.csv を読み込んで使います）</div>
+
+  <!-- データ読込 -->
+  <div class="section">
+    <h2>1. データ読込</h2>
+    <div class="field">
+      <label>成人者CSV：</label>
+      <input type="file" id="participantsFile" accept=".csv">
+      <span class="small">※ Excel から「CSV UTF-8」で保存したファイル</span>
+    </div>
+    <div class="field">
+      <label>スタッフCSV：</label>
+      <input type="file" id="staffFile" accept=".csv">
+      <span class="small">※ 1行目は「着付け,メイク,ヘアー」</span>
+    </div>
+    <div id="loadStatus" class="small"></div>
+  </div>
+
+  <!-- 名前検索（予測変換） -->
+  <div class="section">
+    <h2>2. 名前検索（ふりがな予測変換）</h2>
+    <div class="field flex-row">
+      <label for="nameSearchInput">ふりがな / 名前：</label>
+      <input type="text" id="nameSearchInput" size="24" placeholder="例：しんじょう / 新城">
+      <button id="clearNameSearch">クリア</button>
+      <button id="setArrivalTime" class="primary">入店時間を現在時刻で記録</button>
+    </div>
+    <div class="small">入力すると候補が下に表示されます。クリックで選択。</div>
+    <div id="nameSuggestions" class="suggestions"></div>
+    <div id="selectedParticipantByName" class="participant-card" style="display:none;"></div>
+  </div>
+
+  <!-- 番号検索（進行状況・担当者設定） -->
+  <div class="section">
+    <h2>3. 番号検索 ＋ 担当者設定</h2>
+    <div class="field flex-row">
+      <label for="numberSearchInput">番号：</label>
+      <input type="number" id="numberSearchInput" min="1" style="width:80px;">
+      <button id="searchByNumber">検索</button>
+      <button id="clearNumberSearch">クリア</button>
+    </div>
+    <div id="selectedParticipantByNumber" class="participant-card" style="display:none;"></div>
+  </div>
+
+  <!-- スタッフ担当者ボタン ＋ 新規スタッフ追加 -->
+  <div class="section">
+    <h2>4. スタッフ担当者設定</h2>
+
+    <h3>担当者ボタン</h3>
+    <div class="small">※ スタッフCSV ＋ 新規追加スタッフから自動生成されます。</div>
+
+    <div class="role-section">
+      <strong>着付け担当：</strong>
+      <div id="roleButtons-kitsuke"></div>
+    </div>
+    <div class="role-section">
+      <strong>メイク担当：</strong>
+      <div id="roleButtons-make"></div>
+    </div>
+    <div class="role-section">
+      <strong>ヘアー担当：</strong>
+      <div id="roleButtons-hair"></div>
+    </div>
+
+    <hr>
+
+    <h3>新規スタッフ追加</h3>
+    <div class="field">
+      <label for="newStaffName">スタッフ名：</label>
+      <input type="text" id="newStaffName" placeholder="例：池間">
+    </div>
+    <div class="field">
+      <span class="small">担当区分（複数選択可）：</span>
+      <label><input type="checkbox" id="newStaffRoleKitsuke"> 着付け</label>
+      <label><input type="checkbox" id="newStaffRoleMake"> メイク</label>
+      <label><input type="checkbox" id="newStaffRoleHair"> ヘアー</label>
+    </div>
+    <button id="addNewStaff" class="primary">新規スタッフを追加</button>
+    <div id="newStaffMessage" class="small"></div>
+  </div>
+
+  <!-- 進行状況パネル -->
+  <div class="section">
+    <h2>5. 進行状況パネル</h2>
+    <div class="progress-grid">
+      <div class="progress-card">
+        <div><strong>着付け</strong></div>
+        <div id="progressKitsuke" class="small"></div>
+      </div>
+      <div class="progress-card">
+        <div><strong>メイク</strong></div>
+        <div id="progressMake" class="small"></div>
+      </div>
+      <div class="progress-card">
+        <div><strong>ヘアー</strong></div>
+        <div id="progressHair" class="small"></div>
+      </div>
+      <div class="progress-card">
+        <div><strong>全体</strong></div>
+        <div id="progressOverall" class="small"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    function toHiragana(str) {
+  return str
+    .replace(/[ァ-ン]/g, s => String.fromCharCode(s.charCodeAt(0) - 0x60)) // カタカナ→ひらがな
+    .toLowerCase();
+  }    
+    // ===== 内部データ構造 =====
+    let participants = []; // 成人者一覧
+    /*
+      各要素のイメージ：
+      {
+        番号, 名前, ふりがな, 中学,
+        髪飾り, メイク, ヘアー, 着付け,
+        オリジナル番号, 入店時間, 備考
+      }
+    */
+
+    // スタッフ一覧（役割ごと）
+    let staffByRole = {
+      kitsuke: [], // 着付け
+      make:   [], // メイク
+      hair:   []  // ヘアー
+    };
+
+    // 現在選択中の成人者（番号検索用）
+    let currentParticipantIndexByNumber = null;
+
+    // ===== CSV 読込ユーティリティ =====
+    function parseCSV(text) {
+      // とてもシンプルなCSVパーサー（カンマ区切り、ダブルクォート無し前提）
+      const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+      const result = [];
+      for (let line of lines) {
+        if (!line.trim()) continue;
+        const cols = line.split(",").map(c => c.trim());
+        result.push(cols);
+      }
+      return result;
+    }
+
+    function handleParticipantsCSV(file) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const text = e.target.result;
+        const rows = parseCSV(text);
+        if (rows.length < 2) {
+          document.getElementById("loadStatus").textContent = "成人者CSVの行数が足りません。";
+          return;
+        }
+        const header = rows[0];
+        // 想定ヘッダー順（安全のため簡単に確認）
+        const expected = ["番号","名前","ふりがな","中学","髪飾り","メイク","ヘアー","着付け","オリジナル番号","入店時間","備考"];
+        for (let i = 0; i < expected.length; i++) {
+          if ((header[i] || "") !== expected[i]) {
+            // 軽く警告だけ出して続行
+            console.warn("ヘッダーが想定と違います", header, expected);
+            break;
+          }
+        }
+        participants = [];
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          if (!row[0]) continue; // 番号が空ならスキップ
+          const p = {
+            番号: row[0] || "",
+            名前: row[1] || "",
+            ふりがな: row[2] || "",
+            中学: row[3] || "",
+            髪飾り: row[4] || "",
+            メイク: row[5] || "",
+            ヘアー: row[6] || "",
+            着付け: row[7] || "",
+            オリジナル番号: row[8] || "",
+            入店時間: row[9] || "",
+            備考: row[10] || ""
+          };
+          participants.push(p);
+        }
+        document.getElementById("loadStatus").textContent =
+          `成人者を ${participants.length} 名 読み込みました。`;
+        updateProgressPanel();
+      };
+      reader.readAsText(file, "UTF-8");
+    }
+
+    function handleStaffCSV(file) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const text = e.target.result;
+        const rows = parseCSV(text);
+        if (rows.length < 2) {
+          document.getElementById("loadStatus").textContent += " / スタッフCSVの行数が足りません。";
+          return;
+        }
+        // 初期化
+        staffByRole.kitsuke = [];
+        staffByRole.make = [];
+        staffByRole.hair = [];
+
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          const k = row[0] || "";
+          const m = row[1] || "";
+          const h = row[2] || "";
+          if (k) staffByRole.kitsuke.push(k);
+          if (m) staffByRole.make.push(m);
+          if (h) staffByRole.hair.push(h);
+        }
+        document.getElementById("loadStatus").textContent +=
+          ` / スタッフ（着付け:${staffByRole.kitsuke.length} / メイク:${staffByRole.make.length} / ヘアー:${staffByRole.hair.length}）読み込みました。`;
+
+        renderStaffButtons();
+      };
+      reader.readAsText(file, "UTF-8");
+    }
+
+    // ===== スタッフボタン描画 =====
+    function renderStaffButtons() {
+      const roles = [
+        { key: "kitsuke", label: "着付け", containerId: "roleButtons-kitsuke" },
+        { key: "make",    label: "メイク", containerId: "roleButtons-make" },
+        { key: "hair",    label: "ヘアー", containerId: "roleButtons-hair" }
+      ];
+
+      roles.forEach(role => {
+        const c = document.getElementById(role.containerId);
+        c.innerHTML = "";
+        const list = staffByRole[role.key] || [];
+        list.forEach(name => {
+          const btn = document.createElement("button");
+          btn.textContent = name + "さん";
+          btn.className = "chip";
+          btn.dataset.role = role.key;
+          btn.dataset.name = name;
+          btn.addEventListener("click", () => {
+            toggleStaffForCurrentParticipant(role.key, name);
+          });
+          c.appendChild(btn);
+        });
+      });
+
+      // 番号選択中の人がいれば、その人の選択状態を反映
+      refreshStaffButtonSelection();
+    }
+
+    function toggleStaffForCurrentParticipant(roleKey, staffName) {
+      if (currentParticipantIndexByNumber == null) {
+        alert("先に番号検索で対象の方を選んでください。");
+        return;
+      }
+      const p = participants[currentParticipantIndexByNumber];
+
+      // 対象列（メイク / ヘアー / 着付け）を確定
+      let colName = "";
+      if (roleKey === "kitsuke") colName = "着付け";
+      if (roleKey === "make") colName = "メイク";
+      if (roleKey === "hair") colName = "ヘアー";
+
+      // 既存の文字列（例：Aさん・Cさん）を配列に変換
+      let currentStr = p[colName] || "";
+      let arr = [];
+      if (currentStr) {
+        arr = currentStr.split("・").map(s => s.replace("さん","").trim());
+      }
+
+      const idx = arr.indexOf(staffName);
+      if (idx >= 0) {
+        // すでに選択済み → 解除
+        arr.splice(idx, 1);
+      } else {
+        // 追加
+        arr.push(staffName);
+      }
+
+      // 再度「〇さん・△さん」形式に戻す
+      const newStr = arr.filter(Boolean).map(n => n + "さん").join("・");
+      p[colName] = newStr;
+
+      // 画面更新
+      showParticipantDetailsByNumber(p);
+      refreshStaffButtonSelection();
+      updateProgressPanel();
+    }
+
+    function refreshStaffButtonSelection() {
+      const roles = ["kitsuke","make","hair"];
+      if (currentParticipantIndexByNumber == null) {
+        // 何も選ばれていないので全部解除表示
+        document.querySelectorAll(".chip").forEach(btn => {
+          btn.classList.remove("selected");
+        });
+        return;
+      }
+      const p = participants[currentParticipantIndexByNumber];
+
+      roles.forEach(roleKey => {
+        let colName = "";
+        if (roleKey === "kitsuke") colName = "着付け";
+        if (roleKey === "make") colName = "メイク";
+        if (roleKey === "hair") colName = "ヘアー";
+
+        const currentStr = p[colName] || "";
+        let arr = [];
+        if (currentStr) {
+          arr = currentStr.split("・").map(s => s.replace("さん","").trim());
+        }
+
+        document
+          .querySelectorAll(`.chip[data-role="${roleKey}"]`)
+          .forEach(btn => {
+            const name = btn.dataset.name;
+            if (arr.includes(name)) {
+              btn.classList.add("selected");
+            } else {
+              btn.classList.remove("selected");
+            }
+          });
+      });
+    }
+
+    // ===== 名前検索（予測変換） =====
+    function filterParticipantsByNameQuery(query) {
+      const q = toHiragana(query.trim());
+      if (!q) return [];
+   
+      return participants.filter(p => {
+        const name = toHiragana(p.名前 || "");
+        const kana = toHiragana(p.ふりがな || "");
+        return name.startsWith(q) || kana.startsWith(q);
+      }).slice(0, 30); // 最大30件
+    }
+
+  function renderNameSuggestions(list) {
+  const container = document.getElementById("nameSuggestions");
+  container.innerHTML = "";
+  if (!list.length) return;
+
+  list.forEach(p => {
+    const item = document.createElement("div");
+    item.className = "suggest-item";
+    item.textContent = `${p.名前}（${p.ふりがな} / ${p.中学} / 番号:${p.番号}）`;
+
+    item.addEventListener("click", () => {
+      showParticipantDetailsByName(p);   // ← 正しい関数名
+      document.getElementById("nameSuggestions").innerHTML = "";
+      document.getElementById("nameSearchInput").blur();   // ← これで候補が再表示されない
+    });
+
+    container.appendChild(item);
+  });
+}
+
+    function showParticipantDetailsByName(p) {
+      const div = document.getElementById("selectedParticipantByName");
+      div.style.display = "block";
+      div.innerHTML = `
+        <div><span class="tag">番号</span>${p.番号}</div>
+        <div><span class="tag">名前</span>${p.名前}（${p.ふりがな}）</div>
+        <div><span class="tag">中学</span>${p.中学}</div>
+        <div><span class="tag">髪飾り</span>${p.髪飾り || "－"}</div>
+        <div><span class="tag">メイク</span>${p.メイク || "（未）"}</div>
+        <div><span class="tag">ヘアー</span>${p.ヘアー || "（未）"}</div>
+        <div><span class="tag">着付け</span>${p.着付け || "（未）"}</div>
+        <div><span class="tag">オリジナル番号</span>${p.オリジナル番号 || "－"}</div>
+        <div><span class="tag">入店時間</span>${p.入店時間 || "（未）"}</div>
+        <div><span class="tag">備考</span>${p.備考 || "－"}</div>
+      `;
+      // 入店時間ボタン用に、対象番号を保存
+      document.getElementById("setArrivalTime").dataset.targetNumber = p.番号;
+    }
+
+    // ===== 番号検索 =====
+    function searchByNumber() {
+      const val = document.getElementById("numberSearchInput").value;
+      if (!val) {
+        alert("番号を入力してください。");
+        return;
+      }
+      const numStr = String(val);
+      const idx = participants.findIndex(p => String(p.番号) === numStr);
+      if (idx === -1) {
+        alert("該当する番号が見つかりません。");
+        return;
+      }
+      currentParticipantIndexByNumber = idx;
+      showParticipantDetailsByNumber(participants[idx]);
+      refreshStaffButtonSelection();
+    }
+
+    function showParticipantDetailsByNumber(p) {
+      const div = document.getElementById("selectedParticipantByNumber");
+      div.style.display = "block";
+
+      // 完了判定
+      const kitsukeDone = !!(p.着付け && p.着付け.trim());
+      const makeDone = !!(p.メイク && p.メイク.trim());
+      const hairDone = !!(p.ヘアー && p.ヘアー.trim());
+
+      function statusLabel(done) {
+        return done ? '<span class="status-complete">完了</span>' :
+                      '<span class="status-pending">未</span>';
+      }
+
+      div.innerHTML = `
+        <div><span class="tag">番号</span>${p.番号}</div>
+        <div><span class="tag">名前</span>${p.名前}（${p.ふりがな}）</div>
+        <div><span class="tag">中学</span>${p.中学}</div>
+        <div><span class="tag">髪飾り</span>${p.髪飾り || "－"}</div>
+        <div><span class="tag">オリジナル番号</span>${p.オリジナル番号 || "－"}</div>
+        <div><span class="tag">入店時間</span>${p.入店時間 || "（未）"}</div>
+        <div><span class="tag">備考</span>${p.備考 || "－"}</div>
+        <hr>
+        <div><span class="tag">着付け</span>${p.着付け || "（未）"} ${statusLabel(kitsukeDone)}</div>
+        <div><span class="tag">メイク</span>${p.メイク || "（未）"} ${statusLabel(makeDone)}</div>
+        <div><span class="tag">ヘアー</span>${p.ヘアー || "（未）"} ${statusLabel(hairDone)}</div>
+      `;
+    }
+
+    // ===== 入店時間の設定 =====
+    function setArrivalTimeForSelected() {
+      const targetNum = document.getElementById("setArrivalTime").dataset.targetNumber;
+      if (!targetNum) {
+        alert("先に名前検索で対象の方を選んでください。");
+        return;
+      }
+      const idx = participants.findIndex(p => String(p.番号) === String(targetNum));
+      if (idx === -1) {
+        alert("内部データ上で該当者が見つかりません。");
+        return;
+      }
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2,"0");
+      const mm = String(now.getMinutes()).padStart(2,"0");
+      const timeStr = `${hh}:${mm}`;
+      participants[idx].入店時間 = timeStr;
+
+      alert(`番号 ${participants[idx].番号} の入店時間を ${timeStr} で記録しました。`);
+
+      // 名前側カードを更新
+      showParticipantDetailsByName(participants[idx]);
+
+      // もし番号側でも選択中なら更新
+      if (currentParticipantIndexByNumber === idx) {
+        showParticipantDetailsByNumber(participants[idx]);
+      }
+    }
+
+    // ===== 進行状況パネル =====
+    function updateProgressPanel() {
+      const total = participants.length;
+      if (!total) {
+        document.getElementById("progressKitsuke").textContent = "データ未読込";
+        document.getElementById("progressMake").textContent = "データ未読込";
+        document.getElementById("progressHair").textContent = "データ未読込";
+        document.getElementById("progressOverall").textContent = "データ未読込";
+        return;
+      }
+
+      let doneK = 0, doneM = 0, doneH = 0, doneAll = 0;
+
+      participants.forEach(p => {
+        const k = !!(p.着付け && p.着付け.trim());
+        const m = !!(p.メイク && p.メイク.trim());
+        const h = !!(p.ヘアー && p.ヘアー.trim());
+        if (k) doneK++;
+        if (m) doneM++;
+        if (h) doneH++;
+        if (k && m && h) doneAll++;
+      });
+
+      document.getElementById("progressKitsuke").textContent =
+        `${doneK} / ${total} 完了`;
+      document.getElementById("progressMake").textContent =
+        `${doneM} / ${total} 完了`;
+      document.getElementById("progressHair").textContent =
+        `${doneH} / ${total} 完了`;
+      document.getElementById("progressOverall").textContent =
+        `${doneAll} / ${total} 完了（着付け・メイク・ヘアー 全て完了）`;
+    }
+
+    // ===== 新規スタッフ追加 =====
+    function addNewStaff() {
+      const nameInput = document.getElementById("newStaffName");
+      const name = nameInput.value.trim();
+      const roleK = document.getElementById("newStaffRoleKitsuke").checked;
+      const roleM = document.getElementById("newStaffRoleMake").checked;
+      const roleH = document.getElementById("newStaffRoleHair").checked;
+      const msg = document.getElementById("newStaffMessage");
+
+      if (!name) {
+        alert("スタッフ名を入力してください。");
+        return;
+      }
+      if (!roleK && !roleM && !roleH) {
+        alert("担当区分を1つ以上選択してください。");
+        return;
+      }
+
+      if (roleK && !staffByRole.kitsuke.includes(name)) {
+        staffByRole.kitsuke.push(name);
+      }
+      if (roleM && !staffByRole.make.includes(name)) {
+        staffByRole.make.push(name);
+      }
+      if (roleH && !staffByRole.hair.includes(name)) {
+        staffByRole.hair.push(name);
+      }
+
+      msg.textContent = `${name} さんを担当者一覧に追加しました。`;
+      nameInput.value = "";
+      document.getElementById("newStaffRoleKitsuke").checked = false;
+      document.getElementById("newStaffRoleMake").checked = false;
+      document.getElementById("newStaffRoleHair").checked = false;
+
+      renderStaffButtons();
+    }
+
+    // ===== イベント設定 =====
+    document.getElementById("participantsFile").addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (file) handleParticipantsCSV(file);
+    });
+
+    document.getElementById("staffFile").addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (file) handleStaffCSV(file);
+    });
+
+    document.getElementById("nameSearchInput").addEventListener("input", e => {
+      const q = e.target.value;
+      if (!participants.length) return;
+      const list = filterParticipantsByNameQuery(q);
+      renderNameSuggestions(list);
+    });
+
+   document.getElementById("clearNameSearch").addEventListener("click", () => {
+     document.getElementById("nameSearchInput").value = "";
+     document.getElementById("nameSuggestions").innerHTML = "";
+     document.getElementById("setArrivalTime").dataset.targetNumber = "";
+     document.getElementById("nameSuggestions").innerHTML = "";
+   });
+
+    document.getElementById("setArrivalTime").addEventListener("click", setArrivalTimeForSelected);
+
+    document.getElementById("searchByNumber").addEventListener("click", searchByNumber);
+
+    document.getElementById("clearNumberSearch").addEventListener("click", () => {
+      document.getElementById("numberSearchInput").value = "";
+      document.getElementById("selectedParticipantByNumber").style.display = "none";
+      currentParticipantIndexByNumber = null;
+      refreshStaffButtonSelection();
+    });
+
+    document.getElementById("addNewStaff").addEventListener("click", addNewStaff);
+
+  </script>
+</body>
+
+</html>
