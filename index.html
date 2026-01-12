@@ -415,7 +415,7 @@ button.primary {
           const p = {
             番号: row[0] || "",
             名前: row[1] || "",
-            ふりがな: row[2] || "",
+            ふりがな: toHiragana(row[2] || ""),
             中学: row[3] || "",
             髪飾り: row[4] || "",
             メイク: row[5] || "",
