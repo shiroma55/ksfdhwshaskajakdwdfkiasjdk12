@@ -520,12 +520,7 @@ function toggleStaffForCurrentParticipant(roleKey, staffName) {
   showParticipantDetailsByName(p);
 }
 
-      // 既存の文字列（例：Aさん・Cさん）を配列に変換
-      let currentStr = p[colName] || "";
-      let arr = [];
-      if (currentStr) {
-        arr = currentStr.split("・").map(s => s.replace("さん","").trim());
-      }
+
 
       const idx = arr.indexOf(staffName);
       if (idx >= 0) {
