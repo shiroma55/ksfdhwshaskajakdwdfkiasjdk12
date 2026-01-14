@@ -817,6 +817,37 @@ nameInput.addEventListener("input", function () {
   });
 
 }); // ←★ これが必要！
+    // ===== 名前側カード表示 =====
+function showParticipantDetailsByName(p) {
+  const div = document.getElementById("selectedParticipantByName");
+  if (!div) return;
+
+  div.style.display = "block";
+
+  const kitsukeDone = !!(p.着付け && p.着付け.trim());
+  const makeDone = !!(p.メイク && p.メイク.trim());
+  const hairDone = !!(p.ヘアー && p.ヘアー.trim());
+
+  function statusLabel(done) {
+    return done
+      ? '<span class="status-complete">完了</span>'
+      : '<span class="status-pending">未</span>';
+  }
+
+  div.innerHTML = `
+    <div><span class="tag">番号</span>${p.番号}</div>
+    <div><span class="tag">名前</span>${p.名前}（${p.ふりがな}）</div>
+    <div><span class="tag">中学</span>${p.中学}</div>
+    <div><span class="tag">髪飾り</span>${p.髪飾り || "－"}</div>
+    <div><span class="tag">オリジナル番号</span>${p.オリジナル番号 || "－"}</div>
+    <div><span class="tag">入店時間</span>${p.入店時間 || "（未）"}</div>
+    <div><span class="tag">備考</span>${p.備考 || "－"}</div>
+    <hr>
+    <div><span class="tag">着付け</span>${p.着付け || "（未）"} ${statusLabel(kitsukeDone)}</div>
+    <div><span class="tag">メイク</span>${p.メイク || "（未）"} ${statusLabel(makeDone)}</div>
+    <div><span class="tag">ヘアー</span>${p.ヘアー || "（未）"} ${statusLabel(hairDone)}</div>
+  `;
+}
   </script>
 </body>
 
