@@ -499,18 +499,26 @@ button.primary {
       refreshStaffButtonSelection();
     }
 
-    function toggleStaffForCurrentParticipant(roleKey, staffName) {
-      if (currentParticipantIndexByNumber == null) {
-        alert("先に番号検索で対象の方を選んでください。");
-        return;
-      }
-      const p = participants[currentParticipantIndexByNumber];
+function toggleStaffForCurrentParticipant(roleKey, staffName) {
+  // 参加者が選ばれていない場合
+  if (currentParticipantIndexByNumber == null) {
+    alert("先に番号検索または名前検索で対象の方を選んでください。");
+    return;
+  }
 
-      // 対象列（メイク / ヘアー / 着付け）を確定
-      let colName = "";
-      if (roleKey === "kitsuke") colName = "着付け";
-      if (roleKey === "make") colName = "メイク";
-      if (roleKey === "hair") colName = "ヘアー";
+  // 今選んでいる参加者を取得
+  const p = participants[currentParticipantIndexByNumber];
+  if (!p) return;
+
+  // 担当者をセット
+  if (roleKey === "kitsuke") p.着付け = staffName;
+  if (roleKey === "make")    p.メイク = staffName;
+  if (roleKey === "hair")    p.ヘアー = staffName;
+
+  // 表示を更新（番号側・名前側どちらも）
+  showParticipantDetailsByNumber(p);
+  showParticipantDetailsByName(p);
+}
 
       // 既存の文字列（例：Aさん・Cさん）を配列に変換
       let currentStr = p[colName] || "";
